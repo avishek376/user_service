@@ -1,17 +1,26 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
-from rest_framework import generics,mixins
+from rest_framework import generics
 from rest_framework import status
-
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes,authentication_classes
-from .models import User,UserProfile
+
 from .serializers import UserCreateSerializer, LoginSerializer
 
 # Create your views here.
 
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
 
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+# We can create Login and Registration API by APIView's post method as well
+# But using generics.CreateApiView here to test all the functionalities are working same
 class AccountRegistration(generics.CreateAPIView):
 
     serializer_class = UserCreateSerializer
@@ -20,19 +29,21 @@ class AccountRegistration(generics.CreateAPIView):
         errors = None
         serializer = self.get_serializer(data=request.data)
 
-        if serializer.is_valid():
-            serializer.save()
+        if serializer.is_valid(raise_exception=True):
+            user = serializer.save()
+            tokens = get_tokens_for_user(user)
             response_data = {
                 "message": "User registered successfully",
                 "data": serializer.data,
+                "tokens": tokens,
                 "errors": errors
             }
             response_status = status.HTTP_201_CREATED
 
         else:
             response_data = {
-                "data" : None,
-                "errors" : serializer.errors,
+                "data": None,
+                "errors": serializer.errors,
             }
             response_status = status.HTTP_400_BAD_REQUEST
 
@@ -41,30 +52,35 @@ class AccountRegistration(generics.CreateAPIView):
 
 class AccountLogin(generics.CreateAPIView):
     serializer_class = LoginSerializer
+
     def create(self, request, *args, **kwargs):
 
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data['username']
+        if serializer.is_valid(raise_exception=True):
+            username = serializer.data.get('username')
             password = serializer.validated_data['password']
+            tokens = get_tokens_for_user(serializer.data)
             user = authenticate(request, username=username, password=password)
+
+            # Remove the password field from the response data
+            response_user_data = serializer.data
+            response_user_data.pop('password', None)
 
             if user is not None:
                 response_data = {
                     "message": "logged-in successfully",
-                    "data": serializer.data,
+                    "data": response_user_data,
+                    "tokens": tokens,
                     "errors": serializer.errors,
                 }
                 response_status = status.HTTP_200_OK
-
             else:
-
                 response_data = {
                     "message": "invalid credentials",
-                    "data": serializer.data,
+                    "data": response_user_data,
                     "errors": serializer.errors,
                 }
-                response_status = status.HTTP_400_BAD_REQUEST
+                response_status = status.HTTP_404_NOT_FOUND
 
             return Response(response_data, status=response_status)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
