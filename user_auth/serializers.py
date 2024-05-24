@@ -7,20 +7,19 @@ from django.contrib.auth.hashers import make_password
 class UserCreateSerializer(serializers.ModelSerializer):
 
     def validate_email(self,value):
+        # DETAILS:: validate email and it's uniqueness
 
-        """validate email and it's uniqueness"""
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("This email is already in use.")
         return value
 
     def create(self, validated_data):
 
-        # same functionalities we will get
-        # below is a one way of creating users
+        # DETAILS:: Below is also a way to create users
         # validated_data["password"] = make_password(validated_data["password"])
         # user = User.objects.create(**validated_data)
         # UserProfile.objects.create(user=user)
-        print(validated_data["email"])
+
         user = User.objects.create_user(**validated_data)
         UserProfile.objects.create(user=user)
 

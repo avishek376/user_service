@@ -19,8 +19,8 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
     }
 
-# We can create Login and Registration API by APIView's post method as well
-# But using generics.CreateApiView here to test all the functionalities are working same
+# INFO:: We can create Login and Registration API by APIView's post method as well
+# INFO:: But using generics.CreateApiView here to test all the functionalities are working same
 class AccountRegistration(generics.CreateAPIView):
 
     serializer_class = UserCreateSerializer
@@ -31,11 +31,11 @@ class AccountRegistration(generics.CreateAPIView):
 
         if serializer.is_valid(raise_exception=True):
             user = serializer.save()
-            tokens = get_tokens_for_user(user)
+            token = get_tokens_for_user(user)
             response_data = {
                 "message": "User registered successfully",
                 "data": serializer.data,
-                "tokens": tokens,
+                "token": token,
                 "errors": errors
             }
             response_status = status.HTTP_201_CREATED
@@ -59,10 +59,13 @@ class AccountLogin(generics.CreateAPIView):
         if serializer.is_valid(raise_exception=True):
             username = serializer.data.get('username')
             password = serializer.validated_data['password']
-            tokens = get_tokens_for_user(serializer.data)
+
             user = authenticate(request, username=username, password=password)
 
-            # Remove the password field from the response data
+            # DETAILS:: Based on the authenticated user generate the tokens
+            token = get_tokens_for_user(user)
+
+            # DETAILS:: Remove the password field from the response data
             response_user_data = serializer.data
             response_user_data.pop('password', None)
 
@@ -70,7 +73,7 @@ class AccountLogin(generics.CreateAPIView):
                 response_data = {
                     "message": "logged-in successfully",
                     "data": response_user_data,
-                    "tokens": tokens,
+                    "token": token,
                     "errors": serializer.errors,
                 }
                 response_status = status.HTTP_200_OK
