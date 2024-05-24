@@ -38,3 +38,11 @@ class LoginSerializer(serializers.Serializer):
         model = User
         fields = "__all__"
 
+
+class UserProfileViewSerializer(serializers.ModelSerializer):
+    """serializer for user profile to view as user-profile or user-list"""
+    user = User()
+    print(user.username)
+    class Meta:
+        model = UserProfile
+        fields = ["id","username","first_name"]
