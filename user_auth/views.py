@@ -63,17 +63,16 @@ class AccountLogin(generics.CreateAPIView):
         if serializer.is_valid(raise_exception=True):
             username = serializer.data.get('username')
             password = serializer.validated_data['password']
-
             user = authenticate(request, username=username, password=password)
-
-            # DETAILS:: Based on the authenticated user generate the tokens
-            token = get_tokens_for_user(user)
 
             # DETAILS:: Remove the password field from the response data
             response_user_data = serializer.data
             response_user_data.pop('password', None)
 
             if user is not None:
+                # DETAILS:: Based on the authenticated user generate the tokens
+                token = get_tokens_for_user(user)
+
                 response_data = {
                     "message": "logged-in successfully",
                     "data": response_user_data,
