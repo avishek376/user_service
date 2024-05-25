@@ -35,9 +35,10 @@ _**Module's Usecase**_
     5) After verification, user will be able to login.
     
 `Login:`
-    User will get login by username and password.
-    We will check the user's email is verified or not.
-    If the email is verified then user will be able to login.
+
+    1) User will get login by username and password.
+    2) We will check the user's email is verified or not.
+    3) If the email is verified then user will be able to login.
 
 `Forgot Password:`
     User will get forgot password by email.
