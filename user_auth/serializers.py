@@ -38,11 +38,21 @@ class LoginSerializer(serializers.Serializer):
         model = User
         fields = "__all__"
 
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ["first_name","last_name","username"]
+
 
 class UserProfileViewSerializer(serializers.ModelSerializer):
     """serializer for user profile to view as user-profile or user-list"""
-    user = User()
-    print(user.username)
+
+    role = serializers.SerializerMethodField()
+
     class Meta:
-        model = UserProfile
-        fields = ["id","username","first_name"]
+        model = User
+        fields = ["id","first_name","last_name","username","role"]
+
+    def get_role(self, obj):
+        return obj.userprofile.role if hasattr(obj, 'userprofile') else None

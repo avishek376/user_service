@@ -6,10 +6,10 @@ from rest_framework import generics,viewsets
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.decorators import permission_classes,authentication_classes
 
-from .serializers import UserCreateSerializer, LoginSerializer
+from .serializers import UserCreateSerializer, LoginSerializer,UserProfileViewSerializer
 
 # Create your views here.
 
@@ -23,6 +23,8 @@ def get_tokens_for_user(user):
 
 # INFO:: We can create Login and Registration API by APIView's post method as well
 # INFO:: But using generics.CreateApiView here to test all the functionalities are working same
+
+
 class AccountRegistration(generics.CreateAPIView):
 
     serializer_class = UserCreateSerializer
@@ -92,9 +94,12 @@ class AccountLogin(generics.CreateAPIView):
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
-    queryset = UserProfile.objects.all()
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
+    # DETAILS:: View for admin use only
+    # Admin can view the list,update user-role
 
-    def list(self, request, *args, **kwargs):
-        return Response({"data": "Hello"})
+    queryset = User.objects.all()
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = UserProfileViewSerializer
+
+

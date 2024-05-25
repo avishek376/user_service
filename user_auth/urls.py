@@ -4,7 +4,7 @@ from rest_framework import routers
 from .views import UserProfileViewSet
 
 router = routers.DefaultRouter()
-router.register("users/",UserProfileViewSet)
+router.register(r"users",UserProfileViewSet)
 
 urlpatterns = [
     path('registration/', views.AccountRegistration.as_view(),name="registration"),
