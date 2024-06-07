@@ -35,11 +35,13 @@ class AccountRegistration(generics.CreateAPIView):
 
         if serializer.is_valid(raise_exception=True):
             user = serializer.save()
-            token = get_tokens_for_user(user)
+
+            serializer_response = serializer.data
+            serializer_response.pop('password', None)
+
             response_data = {
                 "message": "User registered successfully",
-                "data": serializer.data,
-                "token": token,
+                "data": serializer_response,
                 "errors": errors
             }
             response_status = status.HTTP_201_CREATED
@@ -98,7 +100,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated, IsAdminUser]
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication,IsAdminUser]
     serializer_class = UserProfileViewSerializer
+    lookup_field = 'id'
 
 
