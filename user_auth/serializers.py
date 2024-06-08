@@ -34,10 +34,6 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField()
     username = serializers.CharField()
 
-    # class Meta:
-    #     model = User
-    #     fields = "__all__"
-
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -58,3 +54,29 @@ class UserProfileViewSerializer(serializers.ModelSerializer):
 
     def get_role(self, obj):
         return obj.userprofile.role if hasattr(obj, 'userprofile') else None
+
+
+class UserChangePasswordSerializer(serializers.Serializer):
+    # email = serializers.EmailField()
+    old_password = serializers.CharField(max_length=12, write_only=True, required=True, help_text='Old password')
+    new_password = serializers.CharField(max_length=12, write_only=True, required=True, help_text='New password')
+
+    class Meta:
+        fields = ['old_password','new_password']
+
+    def validate(self, data):
+        # DETAILS:: Validate the old password and new password
+        if data['old_password'] == data['new_password']:
+            raise serializers.ValidationError("New password can't be same as old password")
+
+        # DETAILS:: Extracting the user that is passed in the context
+        user = self.context.get('user')
+
+        # DETAILS:: Check if the old password is correct
+        if not user.check_password(data['old_password']):
+            raise serializers.ValidationError("Old password is incorrect")
+        user.set_password(data['new_password'])
+        user.save()
+
+        return data
+
