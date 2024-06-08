@@ -64,6 +64,30 @@ class UserChangePasswordSerializer(serializers.Serializer):
     class Meta:
         fields = ['old_password','new_password']
 
+    def validate_new_password(self, value):
+        # DETAILS:: Validate the password
+        special_char = "!@#$%^&*()_+"
+
+        if len(value) < 6:
+            raise serializers.ValidationError("Password must be at least 6 characters long")
+
+        if len(value) > 10:
+            raise serializers.ValidationError("Password must not be 10 characters long")
+
+        if not any(char.isdigit() for char in value):
+            raise serializers.ValidationError("Password must contain at least one numeric character")
+
+        if not any(char.isupper() for char in value):
+            raise serializers.ValidationError("Password must be at least one uppercase letter")
+
+        if not any(char.islower() for char in value):
+            raise serializers.ValidationError("Password must be at least one lowercase letter")
+
+        if not any(char in special_char for char in value):
+            raise serializers.ValidationError("Password must be at least one special character")
+
+        return value
+
     def validate(self, data):
         # DETAILS:: Validate the old password and new password
         if data['old_password'] == data['new_password']:

@@ -118,6 +118,12 @@ class UserChangePasswordView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserPasswordResetView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
+    # send mail to user with reset link
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data,context={'user': request.user})
 
 
